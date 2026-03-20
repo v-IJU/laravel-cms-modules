@@ -21,10 +21,7 @@ class UserGroupController extends Controller
 
     public function __construct()
     {
-        $this->middleware(function ($request, $next) {
-            CGate::resouce('usergroup');
-            return $next($request);
-        });
+      
     }
 
 
@@ -56,7 +53,7 @@ class UserGroupController extends Controller
      */
     public function store(Request $request)
     {
-        $this->validate($request, [
+        $request->validate( [
             'group' => 'required|unique:' . (new UserGroupModel)->getTable() . ',group|max:191',
             'status' => 'required'
         ]);
@@ -111,7 +108,7 @@ class UserGroupController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $this->validate($request, [
+        $request->validate( [
             'group' => 'required|unique:' . (new UserGroupModel)->getTable() . ',group,' . $id,
             'status' => 'required'
         ]);
@@ -175,7 +172,7 @@ class UserGroupController extends Controller
 
         $sTart = ctype_digit($request->get('start')) ? $request->get('start') : 0;
         //$sTart = 0;
-        DB::statement(DB::raw('set @rownum=' . $sTart));
+        DB::statement('SET @rownum = ' . $sTart);
 
 
         $data = UserGroupModel::select(
@@ -187,7 +184,7 @@ class UserGroupController extends Controller
              ELSE "Enabled" END) AS status')
         );
 
-        $datatables = Datatables::of($data)
+        $datatables = DataTables::of($data)
             //->addColumn('check', '{!! Form::checkbox(\'selected_users[]\', $id, false, array(\'id\'=> $rownum, \'class\' => \'catclass\')); !!}{!! Html::decode(Form::label($rownum,\'<span></span>\')) !!}')
             ->addColumn('check', function ($data) {
                 if ($data->id != '1')

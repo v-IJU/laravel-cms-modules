@@ -1,65 +1,67 @@
 <?php
 
-namespace Ramesh\Cms\providers;
+namespace Ramesh\Cms\Providers;
 
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Foundation\AliasLoader;
-
-use Cms;
 
 class CommandProvider extends ServiceProvider
 {
-    /*
-     * Commands
+    /**
+     * All CMS artisan commands
      */
-    protected $commands = [
-        'Ramesh\Cms\Commands\ModuleCommand',
-        'Ramesh\Cms\Commands\MakeController',
-        'Ramesh\Cms\Commands\MakeModel',
-        'Ramesh\Cms\Commands\MakeMigration',
-        'Ramesh\Cms\Commands\MakeCommand',
-        'Ramesh\Cms\Commands\MakeEvent',
-        'Ramesh\Cms\Commands\MakeJob',
-        'Ramesh\Cms\Commands\MakeListener',
-        'Ramesh\Cms\Commands\MakeMail',
-        'Ramesh\Cms\Commands\MakeMiddleware',
-        'Ramesh\Cms\Commands\MakeNotification',
-        'Ramesh\Cms\Commands\MakeProvider',
-        'Ramesh\Cms\Commands\MakeSeeder',
-        'Ramesh\Cms\Commands\MakeCrudRoutes',
-        'Ramesh\Cms\Commands\MakeCrudViews',
+    protected array $commands = [
+        // ── Module scaffolding ──────────────────────────
+        \Ramesh\Cms\Commands\ModuleCommand::class,
+        \Ramesh\Cms\Commands\MakeController::class,
+        \Ramesh\Cms\Commands\MakeModel::class,
+        \Ramesh\Cms\Commands\MakeMigration::class,
+        \Ramesh\Cms\Commands\MakeCommand::class,
+        \Ramesh\Cms\Commands\MakeEvent::class,
+        \Ramesh\Cms\Commands\MakeJob::class,
+        \Ramesh\Cms\Commands\MakeListener::class,
+        \Ramesh\Cms\Commands\MakeMail::class,
+        \Ramesh\Cms\Commands\MakeMiddleware::class,
+        \Ramesh\Cms\Commands\MakeNotification::class,
+        \Ramesh\Cms\Commands\MakeProvider::class,
+        \Ramesh\Cms\Commands\MakeSeeder::class,
+        \Ramesh\Cms\Commands\MakeCrudRoutes::class,
+        \Ramesh\Cms\Commands\MakeCrudViews::class,
 
-        'Ramesh\Cms\Commands\Migrate',
-        'Ramesh\Cms\Commands\Seed',
-        'Ramesh\Cms\Commands\CmsPublish',
+        // ── Database ────────────────────────────────────
+        \Ramesh\Cms\Commands\Migrate::class,
+        \Ramesh\Cms\Commands\Seed::class,
+
+        // ── CMS management ──────────────────────────────
+        \Ramesh\Cms\Commands\CmsPublish::class,
     ];
 
-
     /**
-     * Bootstrap the application services.
-     *
-     * @return void
+     * Register services.
      */
-    public function boot()
+    public function register(): void
     {
-
+        $this->registerCommands();
     }
 
     /**
-     * Register the application services.
-     *
-     * @return void
+     * Bootstrap services.
      */
-    public function register()
+    public function boot(): void
     {
-        $this->registerCommand();
-    }
-    /*
-     * register commands
-     */
-    protected function registerCommand()
-    {
-        $this->commands($this->commands);
+        //
     }
 
+    /**
+     * Register all CMS commands
+     */
+    protected function registerCommands(): void
+    {
+        // Only register commands that actually exist
+        $existing = array_filter(
+            $this->commands,
+            fn(string $command) => class_exists($command)
+        );
+
+        $this->commands($existing);
+    }
 }

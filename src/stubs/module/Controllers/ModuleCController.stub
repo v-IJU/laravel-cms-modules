@@ -43,7 +43,7 @@ class {class} extends Controller
      */
     public function store(Request $request)
     {
-        $this->validate($request,[
+        $request->validate([
             'name' => 'required|min:3|max:50|unique:'.(new {model}())->getTable().',name',
             'desc' => 'required|min:3|max:190',
             'status' => 'required',
@@ -90,7 +90,7 @@ class {class} extends Controller
      */
     public function update(Request $request, $id)
     {
-        $this->validate($request,[
+        $request->validate([
             'name' => 'required|min:3|max:50|unique:'.(new {model}())->getTable().',name,'.$id,
             'desc' => 'required|min:3|max:190',
             'status' => 'required',
@@ -146,7 +146,7 @@ class {class} extends Controller
             WHEN '.DB::getTablePrefix().(new {model}())->getTable().'.status = "-1" THEN "Trashed"
             ELSE "Enabled" END) AS status'));
 
-        $datatables = Datatables::of($data)
+        $datatables = DataTables::of($data)
             ->addColumn('check', function($data) {
                 if($data->id != '1')
                     return $data->rownum;

@@ -25,7 +25,7 @@ class AdminAuth extends Controller
      */
     public function dologin(Request $request)
     {
-        $this->validate($request, [
+        $request->validate( [
             'username' => 'required|exists:users,username|max:191',
             'password' => 'required',
         ]);

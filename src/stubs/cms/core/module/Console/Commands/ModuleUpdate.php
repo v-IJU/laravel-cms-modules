@@ -4,7 +4,8 @@ namespace cms\core\module\Console\Commands;
 
 use Illuminate\Console\Command;
 use Module;
-
+use Cms;
+use cms\core\module\Models\ModuleModel;
 class ModuleUpdate extends Command
 {
     /**
@@ -39,5 +40,23 @@ class ModuleUpdate extends Command
     public function handle()
     {
         Module::registerModule();
+
+        // ── Remove deleted modules from DB ────────────────────
+        $this->removeDeletedModules();
+
+        $this->info('✅ Modules updated successfully!');
+    }
+
+    protected function removeDeletedModules(): void
+    {
+        $dbModules = ModuleModel::all();
+        $diskModules = collect(Cms::allModules())->pluck('name')->toArray();
+
+        foreach ($dbModules as $module) {
+            if (!in_array($module->name, $diskModules)) {
+                $module->delete();
+                $this->info("Removed deleted module: {$module->name}");
+            }
+        }
     }
 }

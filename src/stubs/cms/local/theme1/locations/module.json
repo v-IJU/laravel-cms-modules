@@ -1,8 +1,0 @@
-{
-  "name": "locations",
-  "version": "0.0.2",
-  "type" : "local",
-  "providers": [
-    "Providers\\LocationsServiceProvider"
-  ]
-}

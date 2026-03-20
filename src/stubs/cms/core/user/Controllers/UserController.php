@@ -33,10 +33,7 @@ class UserController extends Controller
 
     public function __construct()
     {
-        $this->middleware(function ($request, $next) {
-            CGate::resouce('user');
-            return $next($request);
-        });
+       
     }
 
     /**
@@ -68,7 +65,7 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-        $this->validate($request, [
+        $request->validate( [
             'email' => 'required|unique:users,email|max:191',
             'password' => 'required|same:password2',
             'password2' => 'required',
@@ -143,7 +140,7 @@ class UserController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $this->validate($request, [
+        $request->validate( [
             'email' => 'required|unique:users,email,' . $id,
             'password' => 'sometimes|same:password2',
             'password2' => 'sometimes',
@@ -225,7 +222,7 @@ class UserController extends Controller
 
         $sTart = ctype_digit($request->get('start')) ? $request->get('start') : 0;
         //$sTart = 0;
-        DB::statement(DB::raw('set @rownum=' . $sTart));
+        DB::statement('SET @rownum = ' . $sTart);
 
 
         $data = UserModel::select(
@@ -244,7 +241,7 @@ class UserController extends Controller
             ->join('user_group_map', 'user_group_map.user_id', '=', 'users.id')
             ->join('user_groups', 'user_groups.id', '=', 'user_group_map.group_id');
 
-        $datatables = Datatables::of($data)
+        $datatables = DataTables::of($data)
             //->addColumn('check', '{!! Form::checkbox(\'selected_users[]\', $id, false, array(\'id\'=> $rownum, \'class\' => \'catclass\')); !!}{!! Html::decode(Form::label($rownum,\'<span></span>\')) !!}')
             ->addColumn('check', function ($data) {
                 if ($data->id != '1')
@@ -307,7 +304,7 @@ class UserController extends Controller
     public  function ajaxRegister(Request $request)
     {
 
-        $this->validate($request, [
+        $request->validate( [
             'email' => 'required|unique:users,email|email|max:191',
             'password' => 'required|min:4',
             'username' => 'required|unique:users,username|max:191',
@@ -354,7 +351,7 @@ class UserController extends Controller
      */
     public  function register(Request $request)
     {
-        $this->validate($request, [
+        $request->validate( [
             'email' => 'required|unique:users,email|email|max:191',
             'password' => 'required',
             'username' => 'required|unique:users,username|max:191',
@@ -365,7 +362,7 @@ class UserController extends Controller
             Session::flash("error", "Register is blocked");
             return redirect()->route('home');
         }
-        $this->validate($request, [
+        $request->validate( [
             'email' => 'required|unique:users,email|max:191',
             'password' => 'required|min:4',
             'username' => 'required|unique:users,username|max:191',
@@ -409,7 +406,7 @@ class UserController extends Controller
      */
     public function ajaxLogin(Request $request)
     {
-        $this->validate($request, [
+        $request->validate( [
             'username' => 'required|exists:users,username|max:191',
             'password' => 'required',
         ]);
@@ -444,7 +441,7 @@ class UserController extends Controller
      */
     public function login(Request $request)
     {
-        $this->validate($request, [
+        $request->validate( [
             'username' => 'required|exists:users,username|max:191',
             'password' => 'required',
         ]);
@@ -538,7 +535,7 @@ class UserController extends Controller
     }
     public function dochangePassword(Request $request)
     {
-        $this->validate($request, [
+        $request->validate( [
             'password' => 'required|same:re-enter-password',
             're-enter-password' => 'required',
             'token' => 'required'
@@ -593,7 +590,7 @@ class UserController extends Controller
     public function updateAccount(Request $request)
     {
         $id = User::getUser()->id;
-        $this->validate($request, [
+        $request->validate( [
             'email' => 'required|email|unique:users,email,' . $id,
             'password' => 'sometimes',
             'name' => 'required',

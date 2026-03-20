@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<menus>
-    <group name="General" order="0">
-        <menugroup name="News Letter" icon="fa fa-newspaper-o" order="10">
-            <menu name="View Subscribers" route="subscriber.index" />
-            <menu name="Create Newsletter" route="newsletter_create_mail_from_admin" />
-        </menugroup>
-    </group>
-</menus>

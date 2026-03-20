@@ -1,103 +1,175 @@
 <?php
 
-namespace Ramesh\Cms\providers;
+namespace Ramesh\Cms\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Foundation\AliasLoader;
-use Cms;
 
 class ModuleServiceProvider extends ServiceProvider
 {
-    /**
-     * Bootstrap the application services.
-     *
-     * @return void
-     */
-    public function boot()
-    {
-    }
-
-    /**
-     * Register the application services.
-     *
-     * @return void
-     */
-    public function register()
+    public function register(): void
     {
         $this->registerLibrary();
 
-        if (!config('cms') || config('cms') == '') {
-            //first time
-        } else {
+        // Guard — only run if cms config exists and is loaded
+        if ($this->isCmsConfigLoaded()) {
             $this->registerNamespace();
-
             $this->registerComposerAutoload();
             $this->registerHelpers();
         }
     }
-    /*
-     * register module providers
-     */
-    protected function registerProviders()
-    {
-        $res = Cms::allModuleProvider();
-        //print_r($res);exit;
 
-        foreach ($res as $key => $provider) {
-            $this->app->register($provider);
+    public function boot(): void
+    {
+        //
+    }
+
+    /**
+     * Check if cms config is properly loaded
+     */
+    protected function isCmsConfigLoaded(): bool
+    {
+        try {
+            $config = config('cms');
+            return !empty($config);
+        } catch (\Exception $e) {
+            return false;
         }
     }
-    /*
-     * register composer
-     */
-    protected function registerComposerAutoload()
-    {
 
-        $loader = require base_path() . '/vendor/autoload.php';
-        $composers = Cms::allModulesComposer();
-        foreach ($composers as $composer) {
-            foreach ($composer['autoload'] as $autoload) {
-                foreach ($autoload as $key => $value)
-                    $loader->setPsr4($key, base_path() . DIRECTORY_SEPARATOR . $value);
+    /**
+     * Register module providers
+     */
+    /**
+ * Register module providers
+ */
+    protected function registerProviders(): void
+    {
+        try {
+            $providers = app('Cms')->allModuleProvider();
+
+            foreach ($providers as $provider) {
+                if (class_exists($provider)) {
+                    $this->app->register($provider);
+                }
             }
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('CMS registerProviders error: ' . $e->getMessage());
         }
     }
-    protected function registerNamespace()
+
+    /**
+     * Register composer autoload for modules
+     */
+    protected function registerComposerAutoload(): void
     {
-        $modules = Cms::allModules();
-        $loader = require base_path() . '/vendor/autoload.php';
+        try {
+            $loader    = require base_path('vendor/autoload.php');
+            $composers = app('Cms')->allModulesComposer();
+
+            foreach ($composers as $composer) {
+                if (!isset($composer['autoload'])) continue;
+
+                foreach ($composer['autoload'] as $autoload) {
+                    foreach ($autoload as $key => $value) {
+                        $loader->setPsr4(
+                            $key,
+                            base_path() . DIRECTORY_SEPARATOR . $value
+                        );
+                    }
+                }
+            }
+        } catch (\Exception $e) {
+            // Silently fail during initial setup
+        }
+    }
+
+    /**
+     * Register module namespaces
+     */
+   /**
+ * Register module namespaces
+ */
+   
+protected function registerNamespace(): void
+{
+    try {
+        $modules = app('Cms')->allModules();
+        $loader  = require base_path('vendor/autoload.php');
+
         foreach ($modules as $module) {
-            if ($module['type'] == 'local') {
-                $loader->setPsr4('cms\\' . $module['name'] . '\\', $module['path']);
+            if (!isset($module['type'], $module['name'], $module['path'])) {
+                continue;
             }
+
+            if ($module['type'] === 'local') {
+                // local: cms\ModuleName\...
+                $loader->setPsr4(
+                    'cms\\' . $module['name'] . '\\',
+                    $module['path']
+                );
+            }
+
+            // core already registered in CmsServiceProvider
+            // cms\core\ → base_path('cms/core')
         }
 
         $this->registerProviders();
-        // exit;
+    } catch (\Exception $e) {
+        \Illuminate\Support\Facades\Log::error('CMS registerNamespace: ' . $e->getMessage());
     }
-    /*
-     * Register Helpers
+}
+    /**
+     * Register module helper aliases
      */
-    protected function registerHelpers()
+    protected function registerHelpers(): void
     {
+        try {
+            $helpers = app('Cms')->allModulesHelpers();
 
-        foreach (Cms::allModulesHelpers() as $aliaas => $value) {
-            $this->app->booting(function () use ($aliaas, $value) {
-                $loader = AliasLoader::getInstance();
-                $loader->alias($aliaas, $value);
-            });
+            foreach ($helpers as $alias => $class) {
+                $this->app->booting(function () use ($alias, $class) {
+                    AliasLoader::getInstance()->alias($alias, $class);
+                });
+            }
+        } catch (\Exception $e) {
+            // Silently fail during initial setup
         }
     }
 
-    /*
-     * register third party librarys
+    /**
+     * Register third party libraries
      */
-    protected function registerLibrary()
+    protected function registerLibrary(): void
     {
-        $this->app->register(\Unisharp\Laravelfilemanager\LaravelFilemanagerServiceProvider::class);
-        $this->app->register(\Intervention\Image\ImageServiceProvider::class);
+        // Laravel File Manager — handle namespace change between versions
+        $lfmProviders = [
+            \UniSharp\LaravelFilemanager\LaravelFilemanagerServiceProvider::class,  // v2.6+
+            \Unisharp\Laravelfilemanager\LaravelFilemanagerServiceProvider::class,  // v2.2
+        ];
 
-        $loader = AliasLoader::getInstance();
-        $loader->alias('Image', \Intervention\Image\Facades\Image::class);
+        foreach ($lfmProviders as $provider) {
+            if (class_exists($provider)) {
+                $this->app->register($provider);
+                break;
+            }
+        }
+
+        // Intervention Image — handle v2 vs v3
+        $imageProviders = [
+            \Intervention\Image\Laravel\ServiceProvider::class,   // v3
+            \Intervention\Image\ImageServiceProvider::class,      // v2
+        ];
+
+        foreach ($imageProviders as $provider) {
+            if (class_exists($provider)) {
+                $this->app->register($provider);
+                AliasLoader::getInstance()->alias(
+                    'Image',
+                    \Intervention\Image\Facades\Image::class
+                );
+                break;
+            }
+        }
     }
 }
