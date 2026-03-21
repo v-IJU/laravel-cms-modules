@@ -3,11 +3,12 @@ namespace cms\core\menu\providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Route;
-
+use Ramesh\Cms\Traits\TenancyRoutes;
 use Cms;
 
 class MenuServiceProvider extends ServiceProvider
 {
+    use TenancyRoutes;
     /*
      * artisan command
      */
@@ -60,7 +61,7 @@ class MenuServiceProvider extends ServiceProvider
         */
 
         Route::prefix('')
-            ->middleware(['web'])
+            ->middleware($this->webMiddleware())
             ->namespace('cms\core\menu\Controllers')
             ->group(__DIR__ . '/../routes.php');
         //require __DIR__.'/../routes.php';
@@ -71,7 +72,7 @@ class MenuServiceProvider extends ServiceProvider
     {
 
         Route::prefix('administrator')
-            ->middleware(['web','Admin'])
+            ->middleware($this->adminMiddleware())  
             ->namespace('cms\core\menu\Controllers')
             ->group(__DIR__ . '/../adminroutes.php');
 

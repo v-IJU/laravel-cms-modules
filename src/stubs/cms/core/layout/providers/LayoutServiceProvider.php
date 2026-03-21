@@ -6,9 +6,11 @@ use Illuminate\Support\ServiceProvider;
 use Cms;
 use Route;
 use CmsMail;
+use Ramesh\Cms\Traits\TenancyRoutes;
 
 class LayoutServiceProvider extends ServiceProvider
 {
+    use TenancyRoutes;
     /**
      * Bootstrap the application services.
      *
@@ -57,7 +59,7 @@ class LayoutServiceProvider extends ServiceProvider
     public function registerRoute()
     {
         Route::prefix('')
-            ->middleware(['web'])
+            ->middleware($this->webMiddleware())
             ->namespace('cms\core\layout\Controllers')
             ->group(__DIR__ . '/../routes.php');
     }

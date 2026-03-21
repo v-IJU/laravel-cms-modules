@@ -6,56 +6,46 @@ use Illuminate\Console\Command;
 use Module;
 use Cms;
 use cms\core\module\Models\ModuleModel;
+
 class ModuleUpdate extends Command
 {
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
-    protected $signature = 'update:cms-module';
+    protected $signature = 'update:cms-module
+                            {--modules=* : Only register specific modules}';
 
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
     protected $description = 'Update modules';
 
-    /**
-     * Create a new command instance.
-     *
-     * @return void
-     */
     public function __construct()
     {
         parent::__construct();
     }
 
-    /**
-     * Execute the console command.
-     *
-     * @return mixed
-     */
-    public function handle()
+    public function handle(): void
     {
-        Module::registerModule();
+        $onlyModules = $this->option('modules');
 
-        // ── Remove deleted modules from DB ────────────────────
-        $this->removeDeletedModules();
+        if (!empty($onlyModules)) {
+            // ── Register specific modules only ─────────────
+            $this->info('Registering modules: ' . implode(', ', $onlyModules));
+            Module::registerModules($onlyModules);
+        } else {
+            // ── Register all modules (existing behavior) ───
+            $this->info('Registering all modules...');
+            Module::registerModule();
+            $this->removeDeletedModules();
+        }
 
         $this->info('✅ Modules updated successfully!');
     }
 
     protected function removeDeletedModules(): void
     {
-        $dbModules = ModuleModel::all();
+        $dbModules   = ModuleModel::all();
         $diskModules = collect(Cms::allModules())->pluck('name')->toArray();
 
         foreach ($dbModules as $module) {
             if (!in_array($module->name, $diskModules)) {
                 $module->delete();
-                $this->info("Removed deleted module: {$module->name}");
+                $this->info("🗑️  Removed deleted module: {$module->name}");
             }
         }
     }

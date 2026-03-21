@@ -3,11 +3,12 @@ namespace cms\core\module\providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Route;
-
+use Ramesh\Cms\Traits\TenancyRoutes;
 use Cms;
 
 class ModuleServiceProvider extends ServiceProvider
 {
+    use TenancyRoutes;
     /*
      * commande
      */
@@ -57,7 +58,7 @@ class ModuleServiceProvider extends ServiceProvider
     {
 
         Route::prefix('administrator')
-            ->middleware(['web','Admin'])
+            ->middleware($this->adminMiddleware())
             ->namespace('cms\core\user\Controllers')
             ->group(__DIR__ . '/../adminroutes.php');
 

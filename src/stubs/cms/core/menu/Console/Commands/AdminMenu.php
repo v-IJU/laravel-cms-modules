@@ -3,42 +3,32 @@
 namespace cms\core\menu\Console\Commands;
 
 use Illuminate\Console\Command;
-
-//helpers
 use Menu;
+
 class AdminMenu extends Command
 {
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
-    protected $signature = 'update:cms-menu';
+    protected $signature = 'update:cms-menu
+                            {--modules=* : Only register menus for specific modules}';
 
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
     protected $description = 'Update Admin menus';
 
-    /**
-     * Create a new command instance.
-     *
-     * @return void
-     */
     public function __construct()
     {
         parent::__construct();
     }
 
-    /**
-     * Execute the console command.
-     *
-     * @return mixed
-     */
-    public function handle()
+    public function handle(): void
     {
-        Menu::registerMenu();
+        $onlyModules = $this->option('modules');
+
+        if (!empty($onlyModules)) {
+            $this->info('Registering menus for: ' . implode(', ', $onlyModules));
+            Menu::registerMenusForModules($onlyModules);
+        } else {
+            $this->info('Registering all menus...');
+            Menu::registerMenu();
+        }
+
+        $this->info('✅ Menus updated successfully!');
     }
 }

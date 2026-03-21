@@ -1,23 +1,28 @@
 <div id="sidebar-menu" class="main_menu_side hidden-print main_menu">
     <div class="menu_section">
-        @foreach(Menu::getAdminMenu() as $menu)
+        @foreach (Menu::getAdminMenu() as $menu)
             <div class="menu_section">
-                <h3>{{$menu['name']}}</h3>
+                <h3>{{ $menu['name'] }}</h3>
                 <ul class="nav side-menu">
-                    @if(count((array) $menu)>0)
+                    @if (count((array) $menu) > 0)
                         @php
-                            if(isset($menu['group']))
-                                printMenuGroup($menu['group'])
+                            if (isset($menu['group'])) {
+                                printMenuGroup($menu['group']);
+                            }
                         @endphp
                         <?php
                         if(isset($menu['menu'])){
                         foreach($menu['menu'] as $menus){
                         if($menus['is_url']==0){?>
-                        <li><a href="{{route($menus['url'])}}"><i class="{{($menus['icon']) ? $menus['icon'] : ''}}"></i>{{$menus['name']}}</a></li>
+                        <li><a href="{{ route($menus['url']) }}"><i
+                                    class="{{ $menus['icon'] ? $menus['icon'] : '' }}"></i>{{ $menus['name'] }}</a>
+                        </li>
                         <?php }
                         else{
                         ?>
-                        <li><a href="{{url($menus['url'])}}"><i class="{{($menus['icon']) ? $menus['icon'] : ''}}"></i>{{$menus['name']}}</a></li>
+                        <li><a href="{{ url($menus['url']) }}"><i
+                                    class="{{ $menus['icon'] ? $menus['icon'] : '' }}"></i>{{ $menus['name'] }}</a>
+                        </li>
                         <?php
                         }
                         }
@@ -33,19 +38,20 @@
         {
         foreach($groups as $group) {
         ?>
-        <li class="{{($is_submenu) ? 'sub_menu' : ''}}"><a><i class="{{($group['icon']) ? $group['icon'] : ''}}"></i> {{$group['name']}} <span class="fa fa-chevron-down"></span></a>
-            @if(isset($group['menu']) && count((array) $group['menu'])>0)
+        <li class="{{ $is_submenu ? 'sub_menu' : '' }}"><a><i class="{{ $group['icon'] ? $group['icon'] : '' }}"></i>
+                {{ $group['name'] }} <span class="fa fa-chevron-down"></span></a>
+            @if (isset($group['menu']) && count((array) $group['menu']) > 0)
                 <ul class="nav child_menu">
                     <?php
                     foreach($group['menu'] as $menus){
                     if($menus['is_url']==0){
                     ?>
-                    <li><a href="{{route($menus['url'])}}">{{$menus['name']}}</a></li>
+                    <li><a href="{{ route($menus['url']) }}">{{ $menus['name'] }}</a></li>
                     <?php
                     }
                     else{
                     ?>
-                    <li><a href="{{url($menus['url'])}}">{{$menus['name']}}</a></li>
+                    <li><a href="{{ url($menus['url']) }}">{{ $menus['name'] }}</a></li>
                     <?php
                     }
                     }

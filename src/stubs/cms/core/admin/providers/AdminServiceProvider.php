@@ -4,10 +4,12 @@ namespace cms\core\admin\providers;
 use Illuminate\Support\ServiceProvider;
 
 use Illuminate\Support\Facades\Route;
+use Ramesh\Cms\Traits\TenancyRoutes;
 use Cms;
 
 class AdminServiceProvider extends ServiceProvider
 {
+     use TenancyRoutes;
     /**
      * Bootstrap the application services.
      *
@@ -30,13 +32,18 @@ class AdminServiceProvider extends ServiceProvider
         $this->registerMiddleware();
     }
 
-    public function registerRoute() {
-        include(__DIR__.'/../routes.php');
+   public function registerRoute() {
+
+     Route::prefix('')
+            ->middleware($this->webMiddleware()) 
+            // ->namespace('cms\core\admin\Controllers')
+            ->group(__DIR__ . '/../routes.php');
+        // include(__DIR__.'/../routes.php');
     }
 
     public function registerAdminRoute() {
         Route::prefix('administrator')
-            ->middleware(['web','Admin'])
+            ->middleware($this->adminMiddleware())
             ->namespace('cms\core\admin\Controllers')
             ->group(__DIR__ . '/../adminroutes.php');
     }

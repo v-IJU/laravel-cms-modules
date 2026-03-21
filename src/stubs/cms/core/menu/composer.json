@@ -1,15 +1,14 @@
 {
-  "name": "cms/menu",
-  "description": "",
-  "authors": [
-    {
-      "name": "Ramesh",
-      "email": "shunramit@gmail.com"
+    "name": "cms/menu",
+    "db_scope": "both",
+    "description": "",
+    "authors": [
+        {
+            "name": "Ramesh",
+            "email": "shunramit@gmail.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {}
     }
-  ],
-  "autoload": {
-    "psr-4": {
-      
-    }
-  }
 }

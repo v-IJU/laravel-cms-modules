@@ -1,16 +1,14 @@
 {
-  "name": "layout",
-  "version": "0.0.1",
-  "type" : "core",
-  "providers": [
-    "providers\\LayoutServiceProvider"
-  ],
-  "helpers" : {
-    "CmsMail":"cms\\core\\layout\\helpers\\CmsMail"
-  },
-  "plugins" : "config/plugins.php",
-  "permissions" : {
-    "status" : false
-  }
-
+    "name": "layout",
+    "db_scope": "both",
+    "version": "0.0.1",
+    "type": "core",
+    "providers": ["providers\\LayoutServiceProvider"],
+    "helpers": {
+        "CmsMail": "cms\\core\\layout\\helpers\\CmsMail"
+    },
+    "plugins": "config/plugins.php",
+    "permissions": {
+        "status": false
+    }
 }

@@ -41,56 +41,79 @@ class Seed extends Command
      *
      * @return mixed
      */
-    public function handle()
+    public function handle(): void
     {
+        $module = $this->option('module');
+        $class  = $this->option('class');
 
-        $module =  $this->option('module');
-
-        $class =  $this->option('class');
-
+        // ── Specific module ────────────────────────────────
         if ($module) {
             if ($class) {
                 $this->call('db:seed', [
-                    '--class' =>  Cms::getPath() . '\\' . $module . '\\Database\\seeds\\' . $class
+                    '--class' => Cms::getPath() . '\\' . $module . '\\Database\\seeds\\' . $class
                 ]);
             } else {
-                $module_path = base_path() . '/' . Cms::getPath() . '/' . Cms::getModulesPath() . '/' . Cms::getCurrentTheme() . '/' . $module . '/Database/seeds';
-                $files = $this->getAllFileInFolder($module_path);
-                foreach ($files as $file) {
-                    $class_name = preg_replace('/\..+$/', '', $file);
+                $modulePath = base_path()
+                    . '/' . Cms::getPath()
+                    . '/' . Cms::getModulesPath()
+                    . '/' . Cms::getCurrentTheme()
+                    . '/' . $module
+                    . '/Database/seeds';
+
+                foreach ($this->getAllFileInFolder($modulePath) as $file) {
+                    $className = preg_replace('/\..+$/', '', $file);
                     $this->call('db:seed', [
-                        '--class' =>  Cms::getPath() . '\\' .  $module . '\\Database\\seeds\\' . $class_name
+                        '--class' => Cms::getPath() . '\\' . $module . '\\Database\\seeds\\' . $className
                     ]);
                 }
             }
-        } else {
-            $cms = Cms::allModulesPath(false);
-            foreach ($cms as $module) {
+            return;
+        }
 
+        // ── All modules ────────────────────────────────────
+        $cms = Cms::allModulesPath(false);
 
-                if ($class) {
-                    if (File::exists(base_path() . '/' . $module . '/Database/seeds/' . $class . '.php')) {
-                        $this->call('db:seed', [
-                            '--class' => $module . '\\Database\\seeds\\' . $class
-                        ]);
-                    }
-                } else {
+        foreach ($cms as $modulePath) {
+            if ($class) {
+                $seedFile = base_path() . '/' . $modulePath . '/Database/seeds/' . $class . '.php';
 
-                    $files = $this->getAllFileInFolder(base_path() . '/' . $module . '/Database/seeds');
-                    //print_r($files);
-                    foreach ($files as $file) {
-                        $class_name = preg_replace('/\..+$/', '', $file);
-                        $m = ltrim($module, '/');
-                        $m = str_replace('/', '\\', $m);
-                        $m =  str_replace('local\\'.Cms::getCurrentTheme().'\\', '', $m);
-                        $this->call('db:seed', [
-                            '--class' => $m . '\\Database\\seeds\\' . $class_name
-                        ]);
-                    }
+                if (File::exists($seedFile)) {
+                    $this->call('db:seed', [
+                        '--class' => $modulePath . '\\Database\\seeds\\' . $class
+                    ]);
+                }
+            } else {
+                $files = $this->getAllFileInFolder(
+                    base_path() . '/' . $modulePath . '/Database/seeds'
+                );
+
+                foreach ($files as $file) {
+                    $className = preg_replace('/\..+$/', '', $file);
+                    $m         = ltrim($modulePath, '/');
+                    $m         = str_replace('/', '\\', $m);
+                    $m         = str_replace('local\\' . Cms::getCurrentTheme() . '\\', '', $m);
+
+                    $this->call('db:seed', [
+                        '--class' => $m . '\\Database\\seeds\\' . $className
+                    ]);
                 }
             }
         }
-        //echo 'success';
+
+        // ── Seed plans if tenancy enabled ──────────────────
+        // Runs AFTER modules registered — reads modules table
+        // if (config('cms.tenancy_enabled')) {
+        //     $this->info('🌱 Seeding subscription plans...');
+
+        //     $planSeeder = 'cms\core\subscription\Database\Seeds\PlanSeeder';
+
+        //     if (class_exists($planSeeder)) {
+        //         $this->call('db:seed', ['--class' => $planSeeder]);
+        //     } else {
+        //         $this->warn('PlanSeeder not found — skipping plan seeding');
+        //         $this->warn('Make sure subscription module is installed');
+        //     }
+        // }
     }
 
     protected function getAllFileInFolder($folder)

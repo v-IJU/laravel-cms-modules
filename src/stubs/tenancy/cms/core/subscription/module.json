@@ -1,0 +1,10 @@
+{
+  "name": "subscription",
+  "db_scope": "central",
+  "version": "1.0.0",
+  "type": "core",
+  "providers": ["Providers\\SubscriptionServiceProvider"],
+  "helpers": {
+    "Subscription": "cms\\core\\subscription\\helpers\\Subscription"
+  }
+}

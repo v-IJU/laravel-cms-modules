@@ -21,7 +21,7 @@ class UserGroupController extends Controller
 
     public function __construct()
     {
-      
+       
     }
 
 
@@ -165,53 +165,51 @@ class UserGroupController extends Controller
     /*
      * get user data
      */
-    public function getData(Request $request)
-    {
+   public function getData(Request $request)
+{
+    CGate::authorize('view-usergroup');
 
-        CGate::authorize('view-usergroup');
+    $start = ctype_digit($request->get('start')) ? (int) $request->get('start') : 0;
 
-        $sTart = ctype_digit($request->get('start')) ? $request->get('start') : 0;
-        //$sTart = 0;
-        DB::statement('SET @rownum = ' . $sTart);
+    // ── Fix 1: DB::statement with raw string not Expression ──
+    DB::statement('SET @rownum = ' . $start);
 
+    // ── Fix 2: DB::raw as string expressions ─────────────────
+    $data = UserGroupModel::select(
+        DB::raw('@rownum := @rownum + 1 AS rownum'),
+        'id',
+        'group',
+        DB::raw('(CASE WHEN ' . DB::getTablePrefix() . (new UserGroupModel)->getTable() . '.status = "0" THEN "Disabled"
+            WHEN ' . DB::getTablePrefix() . (new UserGroupModel)->getTable() . '.status = "-1" THEN "Trashed"
+            ELSE "Enabled" END) AS status')
+    );
 
-        $data = UserGroupModel::select(
-            DB::raw('@rownum  := @rownum  + 1 AS rownum'),
-            "id",
-            "group",
-            DB::raw('(CASE WHEN ' . DB::getTablePrefix() . (new UserGroupModel)->getTable() . '.status = "0" THEN "Disabled"
-             WHEN ' . DB::getTablePrefix() . (new UserGroupModel)->getTable() . '.status = "-1" THEN "Trashed"
-             ELSE "Enabled" END) AS status')
-        );
-
-        $datatables = DataTables::of($data)
-            //->addColumn('check', '{!! Form::checkbox(\'selected_users[]\', $id, false, array(\'id\'=> $rownum, \'class\' => \'catclass\')); !!}{!! Html::decode(Form::label($rownum,\'<span></span>\')) !!}')
-            ->addColumn('check', function ($data) {
-                if ($data->id != '1')
-                    return $data->rownum;
-                else
-                    return '';
-            })
-            ->addColumn('actdeact', function ($data) {
-                if ($data->id != '1') {
-                    $statusbtnvalue = $data->status == "Enabled" ? "<i class='glyphicon glyphicon-remove'></i>&nbsp;&nbsp;Disable" : "<i class='glyphicon glyphicon-ok'></i>&nbsp;&nbsp;Enable";
-                    return '<a class="statusbutton btn btn-default" data-toggle="modal" data="' . $data->id . '" href="">' . $statusbtnvalue . '</a>';
-                } else
-                    return '';
-            })
-            ->addColumn('action', function ($data) {
-                return '<a class="editbutton btn btn-default" data-toggle="modal" data="' . $data->id . '" href="' . route("usergroup.edit", $data->id) . '" ><i class="glyphicon glyphicon-edit"></i>&nbsp;Edit</a>';
-                //return $data->id;
-            });
-
-
-
-        // return $data;
-        if (count((array) $data) == 0)
-            return [];
-
-        return $datatables->make(true);
-    }
+    // ── Fix 3: New Datatables v12 syntax ─────────────────────
+    return DataTables::of($data)
+        ->addColumn('check', function ($data) {
+            return $data->id != '1' ? $data->rownum : '';
+        })
+        ->addColumn('actdeact', function ($data) {
+            if ($data->id != '1') {
+                $statusbtnvalue = $data->status === 'Enabled'
+                    ? "<i class='ti ti-x'></i>&nbsp;Disable"      // ← Tabler icons
+                    : "<i class='ti ti-check'></i>&nbsp;Enable";
+                return '<a class="statusbutton btn btn-sm btn-secondary"
+                           data="' . $data->id . '"
+                           href="#">' . $statusbtnvalue . '</a>';
+            }
+            return '';
+        })
+        ->addColumn('action', function ($data) {
+            return '<a class="editbutton btn btn-sm btn-primary"
+                       data="' . $data->id . '"
+                       href="' . route('usergroup.edit', $data->id) . '">
+                       <i class="ti ti-edit"></i>&nbsp;Edit
+                    </a>';
+        })
+        ->rawColumns(['check', 'actdeact', 'action'])  // ← required in v12
+        ->make(true);
+}
 
     /*
      * user bulk action

@@ -5,9 +5,10 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Gate;
 use Cms;
-
+use Ramesh\Cms\Traits\TenancyRoutes;
 class CGateServiceProvider extends ServiceProvider
 {
+    use TenancyRoutes;
     /*
      * artisan command
      */
@@ -70,7 +71,7 @@ class CGateServiceProvider extends ServiceProvider
     {
 
         Route::prefix('administrator')
-            ->middleware(['web','Admin'])
+            ->middleware($this->adminMiddleware())
             ->namespace('cms\core\gate\Controllers')
             ->group(__DIR__ . '/../adminroutes.php');
     }

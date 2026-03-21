@@ -6,11 +6,13 @@ use Illuminate\Support\ServiceProvider;
 
 class CommandProvider extends ServiceProvider
 {
-    /**
-     * All CMS artisan commands
-     */
     protected array $commands = [
-        // ── Module scaffolding ──────────────────────────
+        // ── Installation ────────────────────────────────
+        \Ramesh\Cms\Commands\InstallCommand::class,
+        \Ramesh\Cms\Commands\SetupTenancyCommand::class,
+        \Ramesh\Cms\Commands\CreateTenantCommand::class,
+
+        // ── Module scaffolding ───────────────────────────
         \Ramesh\Cms\Commands\ModuleCommand::class,
         \Ramesh\Cms\Commands\MakeController::class,
         \Ramesh\Cms\Commands\MakeModel::class,
@@ -27,36 +29,20 @@ class CommandProvider extends ServiceProvider
         \Ramesh\Cms\Commands\MakeCrudRoutes::class,
         \Ramesh\Cms\Commands\MakeCrudViews::class,
 
-        // ── Database ────────────────────────────────────
+        // ── Database ─────────────────────────────────────
         \Ramesh\Cms\Commands\Migrate::class,
         \Ramesh\Cms\Commands\Seed::class,
-
-        // ── CMS management ──────────────────────────────
-        \Ramesh\Cms\Commands\CmsPublish::class,
     ];
 
-    /**
-     * Register services.
-     */
     public function register(): void
     {
         $this->registerCommands();
     }
 
-    /**
-     * Bootstrap services.
-     */
-    public function boot(): void
-    {
-        //
-    }
+    public function boot(): void {}
 
-    /**
-     * Register all CMS commands
-     */
     protected function registerCommands(): void
     {
-        // Only register commands that actually exist
         $existing = array_filter(
             $this->commands,
             fn(string $command) => class_exists($command)

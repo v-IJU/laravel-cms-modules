@@ -5,9 +5,10 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Route;
 
 use Cms;
-
+use Ramesh\Cms\Traits\TenancyRoutes;
 class UserGroupServiceProvider extends ServiceProvider
 {
+    use TenancyRoutes;
     /**
      * Bootstrap the application services.
      *
@@ -58,7 +59,7 @@ class UserGroupServiceProvider extends ServiceProvider
     {
 
         Route::prefix('administrator')
-            ->middleware(['web','Admin'])
+            ->middleware($this->adminMiddleware()) 
             ->namespace('cms\core\usergroup\Controllers')
             ->group(__DIR__ . '/../adminroutes.php');
 

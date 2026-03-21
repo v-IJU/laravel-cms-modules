@@ -1,48 +1,54 @@
 <?php
 
-return[
+return [
 
     /*
-     * main configurations
+     * Main configurations
      */
-
     'path' => 'cms',
 
     /*
-     * modules configuration
+     * Installation
+     */
+    'installed'        => false,
+    'tenancy_enabled'  => false,
+    'install_mode'     => 'normal', // normal or tenancy
+
+    /*
+     * Modules configuration
      */
     'module' => [
-        /*
-         * module path
-         */
-        'path' => 'local',
-        /*
-         * configuration file name
-         */
+        'path'          => 'local',
         'configuration' => 'module.json',
-        /*
-         *core path
-         */
-        'core_path' => 'core',
-        /*
-         * local path
-         */
-        'local_path' => 'local',
+        'core_path'     => 'core',
+        'local_path'    => 'local',
     ],
+
     /*
      * Theme
      */
     'theme' => [
-        'active' => 'theme1',
-        /*
-         * fall back theme
-         */
-        'fall_back' => 'theme1'
+        'active'    => 'theme1',
+        'fall_back' => 'theme1',
     ],
+
     /*
-     * skin
+     * Skin
      */
     'skin' => [
-        'path' => public_path('skin')
-    ]
+        'path' => public_path('skin'),
+    ],
+
+    /*
+     * Tenancy (only used when tenancy_enabled = true)
+     */
+    'tenancy' => [
+        'central_domains' => [
+            env('APP_DOMAIN', 'localhost'),
+            '127.0.0.1',
+            'localhost',
+        ],
+        'tenant_db_prefix' => 'tenant_',
+    ],
+
 ];

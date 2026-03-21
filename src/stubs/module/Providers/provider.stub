@@ -5,8 +5,10 @@ namespace {namespace};
 use Illuminate\Support\ServiceProvider;
 use Route;
 use Cms;
+use Ramesh\Cms\Traits\TenancyRoutes;
 class {class} extends ServiceProvider
 {
+    use TenancyRoutes;
     /**
      * Bootstrap the application services.
      *
@@ -35,7 +37,7 @@ class {class} extends ServiceProvider
     public function registerRoute()
     {
         Route::prefix('')
-            ->middleware(['web'])
+            ->middleware($this->webMiddleware()) 
             ->namespace('cms\{module}\Controllers')
             ->group(__DIR__ . '/../routes.php');
 
@@ -45,7 +47,7 @@ class {class} extends ServiceProvider
     {
 
         Route::prefix('administrator')
-            ->middleware(['web','Admin'])
+            ->middleware($this->adminMiddleware())
             ->namespace('cms\{module}\Controllers')
             ->group(__DIR__ . '/../adminroutes.php');
 

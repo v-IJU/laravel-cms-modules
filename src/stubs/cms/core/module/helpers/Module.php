@@ -1,66 +1,101 @@
 <?php
 namespace cms\core\module\helpers;
 
-//helpers
 use Cms;
-
-//models
 use cms\core\module\Models\ModuleModel;
-Class Module
+
+class Module
 {
-    public static function registerModule()
+    /**
+     * Register ALL modules — existing behavior
+     */
+    public static function registerModule(): void
     {
         $modules = Cms::allModules();
 
-        //print_r($modules);exit;
-        foreach ($modules as $module)
-        {
-            $type = (($module['type']=='core') ? 1 : 2);
-            $old = ModuleModel::select('version','id')
-                ->where('name','=',$module['name'])
-                ->where('type','=',$type)->first();
-            //already available
-            if(count((array) $old)>0)
-            {
-                //check version is same
-                if($old->version != $module['version'])
-                {
-                    $obj = ModuleModel::find($old->id);
-                    $obj->version = $module['version'];
-                    if(isset($module['configuration']))
-                        $obj->configuration_view = $module['configuration'];
-                    if(isset($module['configuration_data']))
-                        $obj->configuration_data = $module['configuration_data'];
-                    $obj->save();
-                }
-            }
-            else
-            {
-                $obj = new ModuleModel;
-                $obj->name = $module['name'];
-                $obj->type = $type;
-                $obj->version = $module['version'];
-                if(isset($module['configuration']))
-                    $obj->configuration_view = $module['configuration'];
-                if(isset($module['configuration_data']))
-                    $obj->configuration_data = $module['configuration_data'];
-                $obj->status = 1;
-                $obj->save();
-
-            }
-
+        foreach ($modules as $module) {
+            static::registerSingleModule($module);
         }
     }
 
-    public static function getId($module_name,$type=2)
+    /**
+     * Register SPECIFIC modules only — for tenant setup
+     */
+    public static function registerModules(array $allowedModules): void
     {
-         $data =  ModuleModel::where('name','=',$module_name)
-                        ->where('type',$type)
-                        ->select('id')
-                        ->first();
-         if(count((array) $data))
-             return $data->id;
-         else
-             return 0;
+        // Wildcard — register all
+        if (in_array('*', $allowedModules)) {
+            static::registerModule();
+            return;
+        }
+
+        $modules = Cms::allModules();
+
+        foreach ($modules as $module) {
+            if (!in_array($module['name'], $allowedModules)) {
+                continue; // skip not allowed
+            }
+
+            static::registerSingleModule($module);
+        }
+    }
+
+    /**
+     * Register a single module into DB
+     */
+    protected static function registerSingleModule(array $module): void
+    {
+        $type = ($module['type'] === 'core') ? 1 : 2;
+
+        $old = ModuleModel::select('version', 'id')
+            ->where('name', $module['name'])
+            ->where('type', $type)
+            ->first();
+
+        if (count((array) $old) > 0) {
+            // Update if version changed
+            if ($old->version != $module['version']) {
+                $obj          = ModuleModel::find($old->id);
+                $obj->version = $module['version'];
+
+                if (isset($module['configuration'])) {
+                    $obj->configuration_view = $module['configuration'];
+                }
+                if (isset($module['configuration_data'])) {
+                    $obj->configuration_data = $module['configuration_data'];
+                }
+
+                $obj->save();
+            }
+        } else {
+            // Create new
+            $obj          = new ModuleModel();
+            $obj->name    = $module['name'];
+            $obj->type    = $type;
+            $obj->version = $module['version'];
+            $obj->status  = 1;
+
+            if (isset($module['configuration'])) {
+                $obj->configuration_view = $module['configuration'];
+            }
+            if (isset($module['configuration_data'])) {
+                $obj->configuration_data = $module['configuration_data'];
+            }
+
+            $obj->save();
+        }
+    }
+
+    /**
+     * Get module ID by name
+     */
+    public static function getId(string $module_name, int $type = 2): int
+    {
+        $data = ModuleModel::where('name', $module_name)
+                           ->where('type', $type)
+                           ->select('id')
+                           ->first();
+
+        return count((array) $data) ? $data->id : 0;
     }
 }

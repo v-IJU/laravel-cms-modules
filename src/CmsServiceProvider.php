@@ -22,9 +22,10 @@ class CmsServiceProvider extends ServiceProvider
         }
 
         // ── Step 3: Register core modules namespace ────────────
-        // This is what loads cms/core/* modules
-        $loader = require base_path('vendor/autoload.php');
-        $loader->setPsr4('cms\\core\\', base_path('cms/core'));
+        if (is_dir(base_path('cms/core'))) {
+            $loader = require base_path('vendor/autoload.php');
+            $loader->setPsr4('cms\\core\\', base_path('cms/core'));
+        }
 
         // ── Step 4: Merge configs ──────────────────────────────
         if (file_exists(__DIR__ . '/config/lfm.php')) {
@@ -41,11 +42,12 @@ class CmsServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-         // ── Register CmsGate middleware ────────────────────────
+        // ── Register CmsGate middleware ────────────────────────
         app('router')->aliasMiddleware(
             'cgate',
             \Ramesh\Cms\Middleware\CmsGate::class
         );
+
         // ── Publish configs ────────────────────────────────────
         $this->publishes([
             __DIR__ . '/config/lfm.php' => config_path('lfm.php'),
@@ -57,19 +59,42 @@ class CmsServiceProvider extends ServiceProvider
             __DIR__ . '/stubs/skin' => public_path('skin'),
         ], 'cms-assets');
 
-        // ── Publish cms folder structure ───────────────────────
+        // ── Publish cms base structure ─────────────────────────
+        // core modules without subscription
         $this->publishes([
             __DIR__ . '/stubs/cms' => base_path('cms'),
         ], 'cms-structure');
 
+        // ── Publish tenancy stubs ──────────────────────────────
+        // subscription module + tenant migrations
+        // only used when tenancy mode selected
+        $this->publishes([
+            __DIR__ . '/stubs/tenancy/cms'      => base_path('cms'),
+            __DIR__ . '/stubs/tenancy/database' => database_path(),
+
+            // ── Override tenants migration ─────────────────────
+            __DIR__ . '/stubs/tenancy/database/migrations/2019_09_15_000010_create_tenants_table.php'
+            => database_path('migrations/2019_09_15_000010_create_tenants_table.php'),
+
+        ], 'cms-tenancy-stubs');
+
+        // ── Publish Tenant model ───────────────────────────────
+        $this->publishes([
+            __DIR__ . '/stubs/app/Models/Tenant.php' => app_path('Models/Tenant.php'),
+        ], 'cms-tenant-model');
+
+        $this->publishes([
+            __DIR__ . '/stubs/app/Providers/TenancyServiceProvider.php' => app_path('Providers/TenancyServiceProvider.php'),
+        ], 'cms-tenancy-provider');
+
+        $this->publishes([
+            __DIR__ . '/stubs/app/Http/Middleware/InitializeTenancyByDomainOptional.php'
+            => app_path('Http/Middleware/InitializeTenancyByDomainOptional.php'),
+        ], 'cms-tenancy-middleware');
+
         // ── Load views ─────────────────────────────────────────
         if (is_dir(__DIR__ . '/views')) {
             $this->loadViewsFrom(__DIR__ . '/views', 'cms');
-        }
-
-        // ── Load migrations ────────────────────────────────────
-        if (is_dir(__DIR__ . '/database/migrations')) {
-            $this->loadMigrationsFrom(__DIR__ . '/database/migrations');
         }
 
         // ── Load routes ────────────────────────────────────────
