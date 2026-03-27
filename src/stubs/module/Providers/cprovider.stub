@@ -47,8 +47,12 @@ class {class} extends ServiceProvider
      */
     public function registerAdminRoute() {
 
+        
+
         Route::prefix('administrator')
-            ->middleware($this->adminMiddleware())
+            ->middleware($this->adminMiddleware([
+                'subscription.gate:{module}'
+            ]))
             ->namespace('cms\{module}\Controllers')
             ->group(__DIR__ . '/../adminroutes.php');
 

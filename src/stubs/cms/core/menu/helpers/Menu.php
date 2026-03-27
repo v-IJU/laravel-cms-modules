@@ -188,8 +188,10 @@ abstract class Menu
 
             foreach ($menugroup as $groupkey => $group) {
                 foreach ($group['menu'] as $menu_key => $menu) {
-                    if (!isset($permission[$current_user_group][$menu['id']])
-                        || $permission[$current_user_group][$menu['id']] == 0) {
+                    if (
+                        !isset($permission[$current_user_group][$menu['id']])
+                        || $permission[$current_user_group][$menu['id']] == 0
+                    ) {
                         unset($menugroup[$groupkey]['menu'][$menu_key]);
                     }
                 }
@@ -236,4 +238,35 @@ abstract class Menu
     }
 
     static function get($menu): void {}
+
+    static function registerMenuByScope(string $scope): void
+    {
+        $allPaths      = Cms::allModulesPath();
+        $filteredPaths = [];
+
+        foreach ($allPaths as $modulePath) {
+            // Get module name from path
+            $parts      = explode(DIRECTORY_SEPARATOR, trim($modulePath, DIRECTORY_SEPARATOR));
+            $moduleName = end($parts);
+
+            // Read module.json
+            $jsonFile = $modulePath . DIRECTORY_SEPARATOR . 'module.json';
+            if (!file_exists($jsonFile)) continue;
+
+            $config  = json_decode(file_get_contents($jsonFile), true);
+            $dbScope = $config['db_scope'] ?? 'both';
+
+            $include = match ($scope) {
+                'central' => in_array($dbScope, ['central', 'both']),
+                'tenant'  => in_array($dbScope, ['tenant', 'both']),
+                default   => true,
+            };
+
+            if ($include) {
+                $filteredPaths[] = $modulePath;
+            }
+        }
+
+        static::processMenuPaths($filteredPaths);
+    }
 }

@@ -75,6 +75,9 @@ class CmsServiceProvider extends ServiceProvider
             // ── Override tenants migration ─────────────────────
             __DIR__ . '/stubs/tenancy/database/migrations/2019_09_15_000010_create_tenants_table.php'
             => database_path('migrations/2019_09_15_000010_create_tenants_table.php'),
+            // update tenant table
+              __DIR__ . '/stubs/tenancy/database/migrations/2026_03_24_104246_add_onboarding_columns_to_tenants_table.php'
+            => database_path('migrations/2026_03_24_104246_add_onboarding_columns_to_tenants_table.php'),
 
         ], 'cms-tenancy-stubs');
 

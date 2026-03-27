@@ -10,7 +10,8 @@ use cms\core\module\Models\ModuleModel;
 class ModuleUpdate extends Command
 {
     protected $signature = 'update:cms-module
-                            {--modules=* : Only register specific modules}';
+                            {--modules=* : Only register specific modules}
+                            {--scope=    : central, tenant, or all (auto-detected)}';
 
     protected $description = 'Update modules';
 
@@ -22,19 +23,45 @@ class ModuleUpdate extends Command
     public function handle(): void
     {
         $onlyModules = $this->option('modules');
+        $scope       = $this->option('scope') ?? $this->detectScope();
+
+        $this->info("Scope: {$scope}");
 
         if (!empty($onlyModules)) {
-            // ── Register specific modules only ─────────────
             $this->info('Registering modules: ' . implode(', ', $onlyModules));
+          
             Module::registerModules($onlyModules);
         } else {
-            // ── Register all modules (existing behavior) ───
-            $this->info('Registering all modules...');
-            Module::registerModule();
-            $this->removeDeletedModules();
+            if ($scope === 'all') {
+                $this->info('Registering all modules...');
+                Module::registerModule();
+                $this->removeDeletedModules();
+            } else {
+                $this->info("Registering modules for scope: [{$scope}]...");
+                Module::registerModuleByScope($scope);
+                $this->removeDeletedModulesByScope($scope);
+               
+            }
         }
 
         $this->info('✅ Modules updated successfully!');
+    }
+
+    protected function detectScope(): string
+    {
+        if (
+            config('cms.tenancy_enabled') &&
+            function_exists('tenancy') &&
+            tenancy()->initialized
+        ) {
+            return 'tenant';
+        }
+
+        if (config('cms.tenancy_enabled')) {
+            return 'central';
+        }
+
+        return 'all';
     }
 
     protected function removeDeletedModules(): void
@@ -45,7 +72,37 @@ class ModuleUpdate extends Command
         foreach ($dbModules as $module) {
             if (!in_array($module->name, $diskModules)) {
                 $module->delete();
-                $this->info("🗑️  Removed deleted module: {$module->name}");
+                $this->info("🗑️  Removed: {$module->name}");
+            }
+        }
+    }
+
+    protected function removeDeletedModulesByScope(string $scope): void
+    {
+        
+        $dbModules   = ModuleModel::all();
+        $diskModules = collect(Cms::allModules())
+            ->filter(function ($module) use ($scope) {
+                $jsonFile = base_path(
+                    str_replace('\\', '/', ltrim($module['path'] ?? '', '/'))
+                    . '/module.json'
+                );
+                if (!file_exists($jsonFile)) return true;
+                $config  = json_decode(file_get_contents($jsonFile), true);
+                $dbScope = $config['db_scope'] ?? 'both';
+                return match($scope) {
+                    'central' => in_array($dbScope, ['central', 'both']),
+                    'tenant'  => in_array($dbScope, ['tenant', 'both']),
+                    default   => true,
+                };
+            })
+            ->pluck('name')
+            ->toArray();
+
+        foreach ($dbModules as $module) {
+            if (!in_array($module->name, $diskModules)) {
+                $module->delete();
+                $this->info("🗑️  Removed: {$module->name}");
             }
         }
     }

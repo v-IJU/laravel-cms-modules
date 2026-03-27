@@ -12,6 +12,11 @@ class CommandProvider extends ServiceProvider
         \Ramesh\Cms\Commands\SetupTenancyCommand::class,
         \Ramesh\Cms\Commands\CreateTenantCommand::class,
 
+
+        \Ramesh\Cms\Commands\MigrateTenantsCommand::class,
+        \Ramesh\Cms\Commands\SyncTenantModulesCommand::class,
+        \Ramesh\Cms\Commands\AddModuleToPlanCommand::class,
+
         // ── Module scaffolding ───────────────────────────
         \Ramesh\Cms\Commands\ModuleCommand::class,
         \Ramesh\Cms\Commands\MakeController::class,

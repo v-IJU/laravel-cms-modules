@@ -14,8 +14,13 @@ trait TenancyRoutes
         return $middleware;
     }
 
-    protected function adminMiddleware(): array
+    protected function adminMiddleware(array $extra = []): array
     {
-        return $this->webMiddleware(['web', 'Admin']);
+        $middleware = $this->webMiddleware([
+            'web',
+            'Admin',
+        ]);
+
+        return array_merge($middleware, $extra);
     }
 }

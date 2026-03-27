@@ -1,4 +1,5 @@
 <?php
+
 namespace cms\core\module\helpers;
 
 use Cms;
@@ -92,10 +93,50 @@ class Module
     public static function getId(string $module_name, int $type = 2): int
     {
         $data = ModuleModel::where('name', $module_name)
-                           ->where('type', $type)
-                           ->select('id')
-                           ->first();
+            ->where('type', $type)
+            ->select('id')
+            ->first();
 
         return count((array) $data) ? $data->id : 0;
+    }
+
+    static function registerModuleByScope(string $scope): void
+    {
+        $modules = Cms::allModules();
+
+        foreach ($modules as $module) {
+            // Read db_scope from module.json
+            $jsonFile = base_path(
+                'cms/core/' . $module['name'] . '/module.json'
+            );
+
+            // Also check local modules
+            if (!file_exists($jsonFile)) {
+                $theme    = \Cms::getCurrentTheme();
+                $jsonFile = base_path(
+                    "cms/local/{$theme}/{$module['name']}/module.json"
+                );
+            }
+
+            if (!file_exists($jsonFile)) {
+                // No module.json → default both
+                $dbScope = 'both';
+            } else {
+                $config  = json_decode(file_get_contents($jsonFile), true);
+                $dbScope = $config['db_scope'] ?? 'both';
+            }
+
+            $include = match ($scope) {
+                'central' => in_array($dbScope, ['central', 'both']),
+                'tenant'  => in_array($dbScope, ['tenant', 'both']),
+                default   => true,
+            };
+            
+
+            if ($include) {
+                
+                static::registerSingleModule($module);
+            }
+        }
     }
 }

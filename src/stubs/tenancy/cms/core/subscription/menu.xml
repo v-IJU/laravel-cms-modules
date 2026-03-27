@@ -2,6 +2,8 @@
 <menus>
     <group name="SaaS" order="10">
         <menugroup name="Subscription" icon="ti ti-credit-card" order="0">
+            <menu name="Tenants"          route="tenants.index"/>
+            <menu name="Add Tenant"       route="tenants.create"/>
             <menu name="Plans"         route="subscription.plans.index"/>
             <menu name="Create Plan"   route="subscription.plans.create"/>
             <menu name="Subscriptions" route="subscription.index"/>

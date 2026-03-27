@@ -86,7 +86,7 @@ class UserController extends Controller
 
         $Hash = Hash::make($request->password);
         $data->password = $Hash;
-        $data->status = $request->status;
+        $data->status = 1;
 
 
         if ($data->save()) {
