@@ -127,6 +127,16 @@ class InstallCommand extends Command
             '--force' => true,
         ]);
 
+        $this->call('vendor:publish', [
+            '--tag'   => 'cms-tenancy-middleware',
+            '--force' => true,
+        ]);
+
+        $this->call('vendor:publish', [
+            '--tag'   => 'cms-tenancy-provider',
+            '--force' => true,
+        ]);
+
         // ── 3. Register TenancyServiceProvider ────────────
         // File already created by tenancy:install
         // Just register it in bootstrap/providers.php
