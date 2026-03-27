@@ -124,7 +124,17 @@ class InstallCommand extends Command
         //   → tenant migrations into database/migrations/tenant/
         $this->call('vendor:publish', [
             '--tag'   => 'cms-tenancy-stubs',
-            '--force' => false,
+            '--force' => true,
+        ]);
+
+        $this->call('vendor:publish', [
+            '--tag'   => 'cms-tenancy-middleware',
+            '--force' => true,
+        ]);
+
+        $this->call('vendor:publish', [
+            '--tag'   => 'cms-tenancy-provider',
+            '--force' => true,
         ]);
 
         // ── 3. Register TenancyServiceProvider ────────────
