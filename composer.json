@@ -1,6 +1,6 @@
 {
   "name": "viju/laravel-cms-modules",
-  "description": "Modular Laravel CMS with Tabler theme, menu.xml navigation — Laravel 9-12 compatible",
+  "description": "A modular SaaS-ready CMS for Laravel 9-10",
   "keywords": [
     "laravel",
     "cms",
@@ -31,7 +31,7 @@
     "illuminate/routing": "^9.0|^10.0|^11.0|^12.0",
     "illuminate/view": "^9.0|^10.0|^11.0|^12.0",
     "illuminate/database": "^9.0|^10.0|^11.0|^12.0",
-    "prabowosd/laravel-collective-html": "^1.0|^1.1|^13.0",
+    "laravelcollective/html": "^6.3",
     "spatie/laravel-permission": "^5.0|^6.0",
     "yajra/laravel-datatables-oracle": "^9.0|^10.0|^11.0|^12.0",
     "unisharp/laravel-filemanager": "^2.6|^2.9"
